@@ -203,7 +203,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-web-condo-plan-reporter-api"
+name = "actix_web_condo_plan_reporter_api"
 version = "0.1.0"
 dependencies = [
  "actix-rt",
