@@ -1,5 +1,5 @@
 [package]
-name = "actix_web_condo_plan_reporter_api"
+name = "condo_plan_reporter_api"
 version = "0.1.0"
 authors = ["Aphimuk Yimsukpaitoon <luroman6@gmail.com>"]
 edition = "2018"
@@ -10,7 +10,7 @@ path = "src/lib.rs"
 
 [[bin]]
 path = "src/main.rs"
-name = "actix_web_condo_plan_reporter_api"
+name = "condo_plan_reporter_api"
 
 [dependencies]
 actix-web = "4.0.0-beta.4"

@@ -1,5 +1,5 @@
-use actix_web_condo_plan_reporter_api::run;
 use std::net::TcpListener;
+use condo_plan_reporter_api::run;
 
 #[actix_rt::test]
 async fn health_check_works() {

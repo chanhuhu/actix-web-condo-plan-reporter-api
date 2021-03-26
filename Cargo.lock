@@ -203,16 +203,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix_web_condo_plan_reporter_api"
-version = "0.1.0"
-dependencies = [
- "actix-rt",
- "actix-web",
- "reqwest",
- "tokio",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -349,6 +339,16 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "condo_plan_reporter_api"
+version = "0.1.0"
+dependencies = [
+ "actix-rt",
+ "actix-web",
+ "reqwest",
+ "tokio",
+]
 
 [[package]]
 name = "const_fn"
