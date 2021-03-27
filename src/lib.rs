@@ -2,8 +2,9 @@ use actix_web::dev::Server;
 use actix_web::{web, App, Error, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 
+use actix_files::Files;
 use actix_multipart::Multipart;
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use std::io::Write;
 use wkhtmltopdf::{Orientation, PdfApplication, Size};
 
@@ -16,21 +17,21 @@ async fn save_file(mut payload: Multipart) -> Result<HttpResponse, Error> {
     while let Ok(Some(mut field)) = payload.try_next().await {
         let content_type = field
             .content_disposition()
-            .ok_or_else(|| HttpResponse::BadRequest())?;
+            .ok_or_else(|| HttpResponse::BadRequest().finish())?;
+
         let filename = content_type
             .get_filename()
-            .ok_or_else(|| HttpResponse::BadRequest())?;
+            .ok_or_else(|| HttpResponse::BadRequest().finish())?;
         let filepath = format!("./static/{}", sanitize_filename::sanitize(&filename));
 
         // File::create is blocking operation, use threadpool
         let mut f = web::block(|| std::fs::File::create(filepath).unwrap()).await?;
 
         // Field in turn is stream of *Bytes* object
-        while let Some(chunk) = field.next().await {
-            let data = chunk.unwrap();
+        while let Some(chunk) = field.try_next().await? {
             // filesystem operations are blocking, we have to use threadpool
             f = web::block(move || {
-                f.write_all(&data)
+                f.write_all(&chunk)
                     .map(|_| f)
                     .expect("Failed to write files")
             })
@@ -59,7 +60,7 @@ async fn generate_report() -> impl Responder {
     HttpResponse::Ok().finish()
 }
 
-fn index() -> HttpResponse {
+async fn index() -> impl Responder {
     let html = r#"<html>
         <head><title>Upload Test</title></head>
         <body>
@@ -76,14 +77,18 @@ fn index() -> HttpResponse {
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    std::fs::create_dir_all("./static").unwrap();
+    std::fs::create_dir_all("./static")?;
     let server = HttpServer::new(move || {
         App::new()
+            // domain includes: /projects/{project_id}/floor_plans/{floor_plan_id}
+            // domain includes: /floor_plans/{floor_plan_id}/issues/{issue_id}
+            // domain includes: /issues/{issue_id}/images/{image_id}
             .service(
                 web::resource("/upload")
                     .route(web::get().to(index))
                     .route(web::post().to(save_file)),
             )
+            .service(Files::new("/images", "./static").show_files_listing())
             .route("/health_check", web::get().to(health_check))
             .route("/", web::get().to(generate_report))
     })
