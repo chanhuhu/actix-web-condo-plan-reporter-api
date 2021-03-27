@@ -1,10 +1,11 @@
 use actix_web::dev::Server;
-use actix_web::{web, App, Error, HttpResponse, HttpServer};
+use actix_web::{web, App, Error, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 
 use actix_multipart::Multipart;
 use futures::{StreamExt, TryStreamExt};
 use std::io::Write;
+use wkhtmltopdf::{Orientation, PdfApplication, Size};
 
 async fn health_check() -> HttpResponse {
     HttpResponse::Ok().finish()
@@ -39,6 +40,25 @@ async fn save_file(mut payload: Multipart) -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok().into())
 }
 
+async fn generate_report() -> impl Responder {
+    let html = r#"
+   <html><body><h1>สวัสดั</h1><img src="https://www.rust-lang.org/logos/rust-logo-512x512.png"></body></html>
+   "#;
+
+    let mut pdf_app = PdfApplication::new().expect("Failed to init PDF application");
+
+    let mut builder = pdf_app.builder();
+    builder
+        .orientation(Orientation::Landscape)
+        .margin(Size::Millimeters(12))
+        .title("Rust website");
+    let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
+    let _ = output
+        .save("static/basic.pdf")
+        .expect("Failed to save basic.pdf");
+    HttpResponse::Ok().finish()
+}
+
 fn index() -> HttpResponse {
     let html = r#"<html>
         <head><title>Upload Test</title></head>
@@ -65,6 +85,7 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
                     .route(web::post().to(save_file)),
             )
             .route("/health_check", web::get().to(health_check))
+            .route("/", web::get().to(generate_report))
     })
     .listen(listener)?
     .run();
