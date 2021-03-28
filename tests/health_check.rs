@@ -67,3 +67,85 @@ async fn health_check_works() {
     assert!(response.status().is_success());
     assert_eq!(Some(0), response.content_length());
 }
+#[actix_rt::test]
+async fn create_project_returns_a_200_for_valid_data() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+    // Act
+    let response = client
+        .post(&format!("{}/projects", &app.address))
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({
+            "name": "rust"
+        }))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    // Assert
+    assert_eq!(200, response.status().as_u16());
+
+    let saved = sqlx::query!("SELECT name FROM projects",)
+        .fetch_one(&app.db_pool)
+        .await
+        .expect("Failed to fetch saved projects.");
+
+    assert_eq!(saved.name, "rust");
+}
+
+#[actix_rt::test]
+async fn create_project_returns_a_400_when_data_is_missing() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let invalid_json = &serde_json::json!({"name": ""});
+    let error_message = "missing the name";
+
+    // Act
+    let response = client
+        .post(&format!("{}/projects", &app.address))
+        .header("Content-Type", "application/json")
+        .json(invalid_json)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    // Assert
+    assert_eq!(
+        400,
+        response.status().as_u16(),
+        // Additional customised error message on test failure
+        "The API did not fail with 400 Bad Request when the payload was {}.",
+        error_message
+    );
+}
+
+#[actix_rt::test]
+async fn rename_project_returns_a_200_with_valid_data() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let invalid_json = &serde_json::json!({"name": ""});
+    let error_message = "missing the name";
+
+    // Act
+    let response = client
+        .post(&format!("{}/projects", &app.address))
+        .header("Content-Type", "application/json")
+        .json(invalid_json)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    // Assert
+    assert_eq!(
+        400,
+        response.status().as_u16(),
+        // Additional customised error message on test failure
+        "The API did not fail with 400 Bad Request when the payload was {}.",
+        error_message
+    );
+}

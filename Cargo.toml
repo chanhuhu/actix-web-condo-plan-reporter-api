@@ -17,18 +17,21 @@ actix-cors = { git = "https://github.com/actix/actix-extras" }
 actix-files = "0.6.0-beta.3"
 actix-multipart = "0.4.0-beta.3"
 actix-web = "4.0.0-beta.4"
-chrono = "0.4.15"
+chrono = { version = "0.4.15", features = ["serde"] }
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 env_logger = "0.8.3"
 futures = "0.3"
 sanitize-filename = "0.2"
 serde = "1.0.115"
 serde_json = "1"
-sqlx = { version = "0.5.1", default-features = false, features = [ "runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
-uuid = { version = "0.8.1", features = ["v4"] }
+sqlx = { version = "0.5.1", default-features = false, features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
+unicode-segmentation = "1.7.1"
+uuid = { version = "0.8.1", features = ["v4", "serde"] }
+validator = "0.12.0"
 wkhtmltopdf = "0.3.0"
 
 [dev-dependencies]
 actix-rt = "2"
-reqwest = "0.11"
-tokio = "1"
+claim = "0.5.0"
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
