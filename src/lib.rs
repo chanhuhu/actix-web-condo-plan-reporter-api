@@ -18,34 +18,6 @@ pub mod startup;
 //     HttpResponse::Ok().finish()
 // }
 //
-// async fn save_file(mut payload: Multipart) -> Result<HttpResponse, Error> {
-//     // iterate over multipart stream
-//     while let Ok(Some(mut field)) = payload.try_next().await {
-//         let content_type = field
-//             .content_disposition()
-//             .ok_or_else(|| HttpResponse::BadRequest().finish())?;
-//
-//         let filename = content_type
-//             .get_filename()
-//             .ok_or_else(|| HttpResponse::BadRequest().finish())?;
-//         let filepath = format!("./static/{}", sanitize_filename::sanitize(&filename));
-//
-//         // File::create is blocking operation, use threadpool
-//         let mut f = web::block(|| std::fs::File::create(filepath).unwrap()).await?;
-//
-//         // Field in turn is stream of *Bytes* object
-//         while let Some(chunk) = field.try_next().await? {
-//             // filesystem operations are blocking, we have to use threadpool
-//             f = web::block(move || {
-//                 f.write_all(&chunk)
-//                     .map(|_| f)
-//                     .expect("Failed to write files")
-//             })
-//             .await?;
-//         }
-//     }
-//     Ok(HttpResponse::Ok().into())
-// }
 //
 // async fn create_report() -> impl Responder {
 //     let html = r#"
@@ -101,7 +73,6 @@ pub mod startup;
 //                     .route(web::get().to(index))
 //                     .route(web::post().to(save_file)),
 //             )
-//             .service(Files::new("/images", "./static").show_files_listing())
 //             .route("/health_check", web::get().to(health_check))
 //             .route("/", web::get().to(create_report))
 //     })

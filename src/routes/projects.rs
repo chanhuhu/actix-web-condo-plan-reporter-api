@@ -49,6 +49,7 @@ pub async fn get_project_details(
 }
 
 pub async fn find_project(pool: &PgPool, project_id: Uuid) -> Result<Project, sqlx::Error> {
+    log::info!("Getting project details by id {}", project_id);
     match sqlx::query_as::<_, Project>("SELECT * FROM projects WHERE id = $1")
         .bind(project_id)
         .fetch_optional(pool)
@@ -61,10 +62,14 @@ pub async fn find_project(pool: &PgPool, project_id: Uuid) -> Result<Project, sq
 }
 
 pub async fn find_projects(pool: &PgPool) -> Result<Vec<Project>, sqlx::Error> {
+    log::info!("Getting projects in the database");
     let projects = sqlx::query_as::<_, Project>("SELECT * FROM projects")
         .fetch_all(pool)
         .await
-        .map_err(|e| e)?;
+        .map_err(|e| {
+            log::error!("Failed to query {:?}", e);
+            e
+        })?;
     Ok(projects)
 }
 
@@ -72,6 +77,7 @@ pub async fn create_project(
     pool: web::Data<PgPool>,
     input: web::Json<ProjectInput>,
 ) -> Result<HttpResponse, HttpResponse> {
+    log::info!("Adding '{}' as a new project", input.name);
     let new_project = parse_project(input.0).map_err(|_| HttpResponse::BadRequest().finish())?;
     insert_project(&pool, &new_project)
         .await
@@ -107,7 +113,10 @@ pub async fn insert_project(pool: &PgPool, input: &NewProject) -> Result<(), sql
     )
     .execute(pool)
     .await
-    .map_err(|e| e)?;
+    .map_err(|e| {
+        log::error!("Failed to query {:?}", e);
+        e
+    })?;
     Ok(())
 }
 
@@ -126,6 +135,9 @@ pub async fn update_project(
     )
     .execute(pool)
     .await
-    .map_err(|e| e)?;
+    .map_err(|e| {
+        log::error!("Failed to query {:?}", e);
+        e
+    })?;
     Ok(())
 }

@@ -1,4 +1,8 @@
-use crate::routes::{create_project, health_check, rename_project};
+use crate::routes::{
+    create_floor_plan, create_project, get_project_details, health_check, list_projects,
+    rename_project,
+};
+use actix_files::Files;
 use actix_web::dev::Server;
 use actix_web::middleware::Logger;
 use actix_web::web::Data;
@@ -12,8 +16,29 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
         App::new()
             .wrap(Logger::default())
             .route("/health_check", web::get().to(health_check))
-            .route("/projects", web::post().to(create_project))
-            .route("/projects/{project_id}", web::post().to(rename_project))
+            .service(
+                web::scope("/api/v1").service(
+                    web::scope("/projects")
+                        .service(
+                            web::resource("")
+                                .route(web::get().to(list_projects))
+                                .route(web::post().to(create_project)),
+                        )
+                        .service(
+                            web::scope("/{project_id}")
+                                .service(
+                                    web::resource("")
+                                        .route(web::get().to(get_project_details))
+                                        .route(web::put().to(rename_project)),
+                                )
+                                .service(
+                                    web::resource("floor_plans")
+                                        .route(web::post().to(create_floor_plan)),
+                                ),
+                        ),
+                ),
+            )
+            .service(Files::new("/static", "./static").show_files_listing())
             .app_data(db_pool.clone())
     })
     .listen(listener)?
