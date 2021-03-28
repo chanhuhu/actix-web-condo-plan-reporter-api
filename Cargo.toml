@@ -13,13 +13,18 @@ path = "src/main.rs"
 name = "condo_plan_reporter_api"
 
 [dependencies]
-actix-cors = { git = "https://github.com/actix/actix-extras.git" }
+actix-cors = { git = "https://github.com/actix/actix-extras" }
+actix-files = "0.6.0-beta.3"
 actix-multipart = "0.4.0-beta.3"
 actix-web = "4.0.0-beta.4"
-actix-files = "0.6.0-beta.3"
+chrono = "0.4.15"
+config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 futures = "0.3"
-wkhtmltopdf = "0.3.0"
 sanitize-filename = "0.2"
+serde = "1.0.115"
+sqlx = { version = "0.5.1", default-features = false, features = [ "runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
+uuid = { version = "0.8.1", features = ["v4"] }
+wkhtmltopdf = "0.3.0"
 
 [dev-dependencies]
 actix-rt = "2"
