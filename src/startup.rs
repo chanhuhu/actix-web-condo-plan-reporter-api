@@ -1,6 +1,6 @@
 use crate::routes::{
     create_floor_plan, create_issue, create_project, get_floor_plan_details, get_project_details,
-    health_check, index, list_floor_plans, list_projects, rename_project,
+    health_check, index, list_floor_plans, list_issue, list_projects, rename_project,
 };
 use actix_files::Files;
 use actix_web::dev::Server;
@@ -19,6 +19,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
             .route("/health_check", web::get().to(health_check))
             .service(
                 web::scope("/api/v1")
+                    // Endpoint: /projects/{project_id}/floor_plans
                     .service(
                         web::scope("/projects")
                             .service(
@@ -40,7 +41,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
                                     ),
                             ),
                     )
-                    // enpoint /floor_plans/{floor_plan_id}/issues
+                    // Endpoint: /floor_plans/{floor_plan_id}/issues
                     .service(
                         web::scope("/floor_plans").service(
                             web::scope("/{floor_plan_id}")
@@ -48,7 +49,9 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
                                     web::resource("").route(web::get().to(get_floor_plan_details)),
                                 )
                                 .service(
-                                    web::resource("/issues").route(web::post().to(create_issue)),
+                                    web::resource("/issues")
+                                        .route(web::post().to(create_issue))
+                                        .route(web::get().to(list_issue)),
                                 ),
                         ),
                     ),

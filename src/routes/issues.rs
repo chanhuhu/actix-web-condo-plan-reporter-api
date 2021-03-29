@@ -1,10 +1,10 @@
 use crate::consts::FILE_STORAGE_KEY_FOLDER;
 use crate::domain::{NewFile, NewIssue};
-use crate::routes::{get_extension_from_filename, get_stem_from_filename};
+use crate::routes::{find_projects, get_extension_from_filename, get_stem_from_filename};
 use actix_multipart::{Field, Multipart};
 use actix_web::web::Bytes;
 use actix_web::{web, Error, HttpResponse};
-use futures::{StreamExt, TryStreamExt};
+use futures::{StreamExt, TryFutureExt, TryStreamExt};
 use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::types::Uuid;
 use sqlx::{PgPool, Postgres, Transaction};
@@ -110,7 +110,8 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
                         file_path.to_string_lossy().to_string(),
                         file_extension
                     );
-                    let file_url = file_url("localhost:8000", file_id);
+                    let file_url =
+                        format!("{}.{}", file_url("localhost:8000", file_id), file_extension);
                     let new_file = NewFile {
                         id: file_id,
                         name: file_stem.to_string(),
@@ -136,6 +137,32 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
         }
     }
     Ok((data, files))
+}
+
+pub async fn list_issue(
+    pool: web::Data<PgPool>,
+    parameters: web::Path<Parameters>,
+) -> Result<HttpResponse, HttpResponse> {
+    let floor_plan_id = Uuid::parse_str(parameters.floor_plan_id.as_ref())
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+
+    let issues = find_issues(&pool, floor_plan_id)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+
+    Ok(HttpResponse::Ok().json(issues))
+}
+
+pub async fn find_issues(pool: &PgPool, floor_plan_id: Uuid) -> Result<Vec<Issue>, sqlx::Error> {
+    let issues = sqlx::query_as::<_, Issue>("SELECT * FROM issues WHERE floor_plan_id = $1")
+        .bind(floor_plan_id)
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to query {:?}", e);
+            e
+        })?;
+    Ok(issues)
 }
 
 pub async fn create_issue(
