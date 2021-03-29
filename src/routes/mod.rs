@@ -4,3 +4,7 @@ mod projects;
 pub use projects::*;
 mod floor_plans;
 pub use floor_plans::*;
+mod report;
+pub use report::*;
+mod issues;
+pub use issues::*;

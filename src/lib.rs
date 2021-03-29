@@ -19,42 +19,6 @@ pub mod startup;
 // }
 //
 //
-// async fn create_report() -> impl Responder {
-//     let html = r#"
-//     "<!DOCTYPE html>
-//     <html lang="en">
-//     <meta charset="UTF-8"><body><div class=""><h1>สวัสดั</h1><img src="https://www.rust-lang.org/logos/rust-logo-512x512.png"><h1>This is a Heading</h1><p>This is a paragraph.</p></div></body></html>"
-//    "#;
-//
-//     let mut pdf_app = PdfApplication::new().expect("Failed to init PDF application");
-//
-//     let mut builder = pdf_app.builder();
-//     builder
-//         .orientation(Orientation::Landscape)
-//         .margin(Size::Millimeters(12))
-//         .title("Rust website");
-//     let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
-//     let _ = output
-//         .save("static/basic.pdf")
-//         .expect("Failed to save basic.pdf");
-//     HttpResponse::Ok().finish()
-// }
-//
-// async fn index() -> impl Responder {
-//     let html = r#"<html>
-//         <head><title>Upload Test</title></head>
-//         <body>
-//             <form target="/" method="post" enctype="multipart/form-data">
-//                 <input type="file" multiple name="file"/>
-//                 <button type="submit">Submit</button>
-//             </form>
-//         </body>
-//     </html>"#;
-//
-//     HttpResponse::Ok()
-//         .content_type("text/html; charset=utf-8")
-//         .body(html)
-// }
 //
 // pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
 //     std::fs::create_dir_all("./static")?;

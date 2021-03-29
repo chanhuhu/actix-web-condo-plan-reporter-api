@@ -74,7 +74,7 @@ async fn create_project_returns_a_200_for_valid_data() {
     let client = reqwest::Client::new();
     // Act
     let response = client
-        .post(&format!("{}/projects", &app.address))
+        .post(&format!("{}/api/v1/projects", &app.address))
         .header("Content-Type", "application/json")
         .json(&serde_json::json!({
             "name": "rust"
@@ -105,7 +105,7 @@ async fn create_project_returns_a_400_when_data_is_missing() {
 
     // Act
     let response = client
-        .post(&format!("{}/projects", &app.address))
+        .post(&format!("{}/api/v1/projects", &app.address))
         .header("Content-Type", "application/json")
         .json(invalid_json)
         .send()
