@@ -17,6 +17,7 @@ actix-cors = { git = "https://github.com/actix/actix-extras" }
 actix-files = "0.6.0-beta.3"
 actix-multipart = "0.4.0-beta.3"
 actix-web = "4.0.0-beta.4"
+bytes = { version = "1.0.1", features = ["serde"] }
 chrono = { version = "0.4.15", features = ["serde"] }
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 env_logger = "0.8.3"

@@ -1,6 +1,6 @@
 use crate::routes::{
-    create_floor_plan, create_project, get_floor_plan_details, get_project_details, health_check,
-    list_floor_plans, list_projects, rename_project,
+    create_floor_plan, create_issue, create_project, get_floor_plan_details, get_project_details,
+    health_check, index, list_floor_plans, list_projects, rename_project,
 };
 use actix_files::Files;
 use actix_web::dev::Server;
@@ -15,6 +15,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .route("/", web::get().to(index))
             .route("/health_check", web::get().to(health_check))
             .service(
                 web::scope("/api/v1")
@@ -33,16 +34,22 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
                                             .route(web::put().to(rename_project)),
                                     )
                                     .service(
-                                        web::resource("floor_plans")
+                                        web::resource("/floor_plans")
                                             .route(web::post().to(create_floor_plan))
                                             .route(web::get().to(list_floor_plans)),
                                     ),
                             ),
                     )
+                    // enpoint /floor_plans/{floor_plan_id}/issues
                     .service(
                         web::scope("/floor_plans").service(
-                            web::resource("/{floor_plan_id}")
-                                .route(web::get().to(get_floor_plan_details)),
+                            web::scope("/{floor_plan_id}")
+                                .service(
+                                    web::resource("").route(web::get().to(get_floor_plan_details)),
+                                )
+                                .service(
+                                    web::resource("/issues").route(web::post().to(create_issue)),
+                                ),
                         ),
                     ),
             )

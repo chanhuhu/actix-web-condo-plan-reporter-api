@@ -29,11 +29,11 @@ pub struct FloorPlan {
     pub updated_at: DateTime<Utc>,
 }
 
-fn get_extension_from_filename(filename: &str) -> Option<&str> {
+pub fn get_extension_from_filename(filename: &str) -> Option<&str> {
     Path::new(filename).extension().and_then(|s| s.to_str())
 }
 
-fn get_stem_from_filename(filename: &str) -> Option<&str> {
+pub fn get_stem_from_filename(filename: &str) -> Option<&str> {
     Path::new(filename).file_stem().and_then(|s| s.to_str())
 }
 
