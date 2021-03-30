@@ -3,6 +3,7 @@ use condo_plan_reporter_api::startup::run;
 use env_logger::Env;
 use sqlx::postgres::PgPool;
 use std::net::TcpListener;
+use tera::Tera;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -24,6 +25,8 @@ async fn main() -> std::io::Result<()> {
     // of the security implications when you expose the server on all interfaces.
     let address = format!("127.0.0.1:{}", configuration.application_port);
     let listener = TcpListener::bind(address)?;
-    run(listener, connection_pool)?.await?;
+    let tera = Tera::new(concat!("CARGO_MANIFEST_DIR", "/templates/**/*"))
+        .expect("Failed to init tera client");
+    run(listener, connection_pool, tera)?.await?;
     Ok(())
 }

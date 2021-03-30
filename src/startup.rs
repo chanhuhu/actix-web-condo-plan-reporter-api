@@ -13,11 +13,10 @@ use sqlx::PgPool;
 use std::net::TcpListener;
 use tera::Tera;
 
-pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Error> {
+pub fn run(listener: TcpListener, db_pool: PgPool, tera: Tera) -> Result<Server, std::io::Error> {
     let db_pool = Data::new(db_pool);
+
     let server = HttpServer::new(move || {
-        let tera = Tera::new(concat!("CARGO_MANIFEST_DIR", "/templates/**/*"))
-            .expect("Failed to init tera client");
         let cors = Cors::permissive();
         App::new()
             .wrap(cors)
@@ -69,7 +68,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool) -> Result<Server, std::io::Er
             )
             .service(Files::new("/static", "./static").show_files_listing())
             .app_data(db_pool.clone())
-            .data(tera)
+            .data(tera.clone())
     })
     .listen(listener)?
     .run();

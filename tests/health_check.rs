@@ -2,6 +2,7 @@ use condo_plan_reporter_api::configuration::{get_configuration, DatabaseSettings
 use condo_plan_reporter_api::startup::run;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::TcpListener;
+use tera::Tera;
 use uuid::Uuid;
 
 pub struct TestApp {
@@ -19,7 +20,10 @@ async fn spawn_app() -> TestApp {
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
 
-    let server = run(listener, connection_pool.clone()).expect("Failed to bind address");
+    let tera = Tera::new(concat!("CARGO_MANIFEST_DIR", "/templates/**/*"))
+        .expect("Failed to init tera client");
+
+    let server = run(listener, connection_pool.clone(), tera).expect("Failed to bind address");
     let _ = tokio::spawn(server);
     TestApp {
         address,
