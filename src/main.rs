@@ -4,7 +4,6 @@ use env_logger::Env;
 use sqlx::postgres::PgPool;
 use std::net::TcpListener;
 
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     //`init`does call`set_logger`, so this is all we need to do.

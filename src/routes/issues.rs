@@ -1,10 +1,10 @@
 use crate::consts::FILE_STORAGE_KEY_FOLDER;
 use crate::domain::{NewFile, NewIssue};
-use crate::routes::{find_projects, get_extension_from_filename, get_stem_from_filename};
+use crate::routes::{get_extension_from_filename, get_stem_from_filename};
 use actix_multipart::{Field, Multipart};
 use actix_web::web::Bytes;
 use actix_web::{web, Error, HttpResponse};
-use futures::{StreamExt, TryFutureExt, TryStreamExt};
+use futures::{StreamExt, TryStreamExt};
 use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::types::Uuid;
 use sqlx::{PgPool, Postgres, Transaction};
@@ -70,7 +70,7 @@ pub fn index() -> HttpResponse {
             formData.append("myFile", myFile.files[0]);
     
             var request = new XMLHttpRequest();
-            request.open("POST", "api/v1/floor_plans/6e727c59-7b32-43d0-a87a-160e78f93f20/issues");
+            request.open("POST", "api/v1/floor_plans/ed7e335e-ee3b-4f05-81a0-872db349d417/issues");
             request.send(formData);
         }
         
