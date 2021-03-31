@@ -1,15 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Report overall project</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        .circle {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: #ff0000;
+        }
+
+        .h-divider {
+            height: 10px;
+            width: 100%;
+            border-top: 10px solid black;
+        }
+
+        table.fixed {
+            table-layout: fixed;
+            width: 1200px;
+        }
+
+        /*Setting the table width is important!*/
+        table.fixed td {
+            overflow: hidden;
+        }
+
+        /*Hide text outside the cell.*/
+        table.fixed td:nth-of-type(1) {
+            width: 100px;
+        }
+
+        /*Setting the width of column 1.*/
+        table.fixed td:nth-of-type(2) {
+            width: 500px;
+        }
+
+        /*Setting the width of column 2.*/
+        table.fixed td:nth-of-type(3) {
+            width: 400px;
+        }
+
+        /*Setting the width of column 3.*/
+        table.fixed td:nth-of-type(4) {
+            width: 200px;
+        }
+
+    </style>
 </head>
 <body>
-<ul>
-    {% for project in projects %}
-    <li>{{loop.index}}. {{project.project_id}}</li>
-    {% endfor %}
-</ul>
+<div class="container">
+    <div class="row">
+        <hr class="mt-3 mb-3 h-divider"/>
+    </div>
+    <div class="row">
+        <h4>รายงานการตรวจรับคอนโด</h4>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div>โครงการ:</div>
+            <div>ที่อยู่:</div>
+            <div>วันที่ตรวจสอบ:</div>
+        </div>
+        <div class="col">
+            <div>{{project_name}}</div>
+            <div>{{floor_plan_room}}</div>
+            <div>{{now() | date(format="%d-%m-%Y", timezone="Asia/Bangkok")}}</div>
+        </div>
+    </div>
+    <div class="row">
+        <hr class="h-divider mt-3 mb-3"/>
+    </div>
+    <div class="row">
+        <img width="300" style="display: block" src="{{floor_plan_url}}" alt="">
+    </div>
+    <div class="row">
+        <h4>ตำแหน่งข้อบกพร่อง</h4>
+        <div class="circle"></div>
+    </div>
+    <div class="row justify-content-center">
+        <table class="fixed table table-bordered p-0 m-0 text-center">
+            <thead>
+            <tr>
+                <th scope="col">ลำดับ</th>
+                <th scope="col">ภาพประกอบ</th>
+                <th scope="col">รายละเอียด</th>
+                <th scope="col">ตำแหน่ง</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for issue in issues %}
+            <tr>
+                <th scope="row" class="align-middle text-center">{{loop.index}}></th>
+                <td class="align-middle text-center p-0 m-0">
+                    <img style="display: block" width="300" class="p-0 m-0" src="{{issue.url}}" alt="">
+                </td>
+                <td class="align-middle text-center p-0 m-0">
+                    <div class="col">
+                        <div class="row justify-content-center">
+                            {{issue.name}}
+                        </div>
+                        <div class="row justify-content-center text-danger">
+                            {{issue.description}}
+                        </div>
+                    </div>
+                <td class="align-middle p-0 m-0">{{issue.location}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
 </body>
 </html>

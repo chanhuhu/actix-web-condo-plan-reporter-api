@@ -25,7 +25,7 @@ async fn main() -> std::io::Result<()> {
     // of the security implications when you expose the server on all interfaces.
     let address = format!("127.0.0.1:{}", configuration.application_port);
     let listener = TcpListener::bind(address)?;
-    let tera = Tera::new(concat!("CARGO_MANIFEST_DIR", "/templates/**/*"))
+    let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR",), "/templates/**/*"))
         .expect("Failed to init tera client");
     run(listener, connection_pool, tera)?.await?;
     Ok(())

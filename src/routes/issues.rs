@@ -12,12 +12,13 @@ use std::borrow::BorrowMut;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-#[derive(sqlx::FromRow, Debug, Clone, serde::Serialize)]
+#[derive(sqlx::FromRow, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Issue {
     pub id: Uuid,
     pub floor_plan_id: Uuid,
     pub name: String,
-    pub url: String,
+    pub description: String,
+    pub location: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -70,7 +71,7 @@ pub fn index() -> HttpResponse {
             formData.append("myFile", myFile.files[0]);
     
             var request = new XMLHttpRequest();
-            request.open("POST", "api/v1/floor_plans/ed7e335e-ee3b-4f05-81a0-872db349d417/issues");
+            request.open("POST", "api/v1/floor_plans/ba0d60b9-8c92-41db-a557-c68288e8c89b/issues");
             request.send(formData);
         }
         
@@ -93,7 +94,7 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
         let name = content_type.get_name().unwrap();
         if name == "data" {
             while let Some(chunk) = field.next().await {
-                data = chunk.expect(" split_payload err chunk");
+                data = chunk.expect("split_payload err chunk");
             }
         } else {
             match content_type.get_filename() {
@@ -111,7 +112,7 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
                         file_extension
                     );
                     let file_url =
-                        format!("{}.{}", file_url("localhost:8000", file_id), file_extension);
+                        format!("{}.{}", file_url("http://localhost:8000", file_id), file_extension);
                     let new_file = NewFile {
                         id: file_id,
                         name: file_stem.to_string(),

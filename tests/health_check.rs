@@ -20,7 +20,7 @@ async fn spawn_app() -> TestApp {
     configuration.database.database_name = Uuid::new_v4().to_string();
     let connection_pool = configure_database(&configuration.database).await;
 
-    let tera = Tera::new(concat!("CARGO_MANIFEST_DIR", "/templates/**/*"))
+    let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*"))
         .expect("Failed to init tera client");
 
     let server = run(listener, connection_pool.clone(), tera).expect("Failed to bind address");
