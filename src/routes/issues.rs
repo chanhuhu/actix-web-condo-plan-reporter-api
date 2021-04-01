@@ -21,6 +21,7 @@ pub struct Issue {
     pub location: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub url: String, // id | floor_plan_id | name | description | location | created_at | updated_at | id | issue_id | name | url | created_at | updated_at
 }
 
 #[derive(serde::Deserialize)]
@@ -165,7 +166,11 @@ pub async fn list_issue(pool: web::Data<PgPool>) -> Result<HttpResponse, HttpRes
 }
 
 async fn find_issues(pool: &PgPool) -> Result<Vec<Issue>, sqlx::Error> {
-    let issues = sqlx::query_as::<_, Issue>("SELECT * FROM issues")
+    let issues = sqlx::query_as::<_, Issue>(r#"
+    SELECT issues.id, issues.floor_plan_id, issues.name, issues.description, issues.location, issues.created_at, issues.updated_at, files.url
+    FROM issues
+    JOIN files on issues.id = files.issue_id
+    "#)
         .fetch_all(pool)
         .await
         .map_err(|e| {
@@ -179,14 +184,28 @@ pub async fn find_issues_by_floor_plan_id(
     pool: &PgPool,
     floor_plan_id: Uuid,
 ) -> Result<Vec<Issue>, sqlx::Error> {
-    let issues = sqlx::query_as::<_, Issue>("SELECT * FROM issues WHERE floor_plan_id = $1")
-        .bind(floor_plan_id)
-        .fetch_all(pool)
-        .await
-        .map_err(|e| {
-            log::error!("Failed to query {:?}", e);
-            e
-        })?;
+    let issues = sqlx::query_as::<_, Issue>(
+        r#"
+    SELECT issues.id,
+           issues.floor_plan_id,
+           issues.name,
+           issues.description,
+           issues.location,
+           issues.created_at,
+           issues.updated_at,
+           files.url
+    FROM issues
+        JOIN files on issues.id = files.issue_id
+        WHERE floor_plan_id = $1
+    "#,
+    )
+    .bind(floor_plan_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Failed to query {:?}", e);
+        e
+    })?;
     Ok(issues)
 }
 
