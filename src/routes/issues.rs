@@ -38,51 +38,51 @@ pub fn parse_file_path_with_file_id(file_id: Uuid) -> PathBuf {
     file_path
 }
 
-pub fn index() -> HttpResponse {
-    let html = r#"<html>
-        <head><title>Upload Test</title></head>
-        <body>
-            <form target="" method="post" enctype="multipart/form-data" id="myForm" >
-                <input type="text"  id="name" name="text" value="test_text"/>    
-                <input type="text"  id="description" name="text" value="123123"/>    
-                <input type="text"  id="location" name="text" value="123123"/>    
-                
-                <input type="button" value="Submit" onclick="myFunction()"></button>
-            </form>
-            <input type="file" multiple name="file" id="myFile"/>
-        </body>
-        <script>
-        function myFunction(){
-            var myForm = document.getElementById('myForm');
-            var myFile = document.getElementById('myFile');
-    
-            let formData = new FormData();
-            const obj = {
-                name: document.getElementById('name').value,
-                description: document.getElementById('description').value,
-                location: document.getElementById('location').value
-            };
-            const json = JSON.stringify(obj);
-            console.log(obj);
-            console.log(json);
-    
-            
-            formData.append("data", json);
-            formData.append("myFile", myFile.files[0]);
-    
-            var request = new XMLHttpRequest();
-            request.open("POST", "api/v1/floor_plans/ba0d60b9-8c92-41db-a557-c68288e8c89b/issues");
-            request.send(formData);
-        }
-        
-        
-        </script>
-    </html>"#;
-
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(html)
-}
+// pub fn index() -> HttpResponse {
+//     let html = r#"<html>
+//         <head><title>Upload Test</title></head>
+//         <body>
+//             <form target="" method="post" enctype="multipart/form-data" id="myForm" >
+//                 <input type="text"  id="name" name="text" value="test_text"/>
+//                 <input type="text"  id="description" name="text" value="123123"/>
+//                 <input type="text"  id="location" name="text" value="123123"/>
+//
+//                 <input type="button" value="Submit" onclick="myFunction()"></button>
+//             </form>
+//             <input type="file" multiple name="file" id="myFile"/>
+//         </body>
+//         <script>
+//         function myFunction(){
+//             var myForm = document.getElementById('myForm');
+//             var myFile = document.getElementById('myFile');
+//
+//             let formData = new FormData();
+//             const obj = {
+//                 name: document.getElementById('name').value,
+//                 description: document.getElementById('description').value,
+//                 location: document.getElementById('location').value
+//             };
+//             const json = JSON.stringify(obj);
+//             console.log(obj);
+//             console.log(json);
+//
+//
+//             formData.append("data", json);
+//             formData.append("myFile", myFile.files[0]);
+//
+//             var request = new XMLHttpRequest();
+//             request.open("POST", "api/v1/floor_plans/ba0d60b9-8c92-41db-a557-c68288e8c89b/issues");
+//             request.send(formData);
+//         }
+//
+//
+//         </script>
+//     </html>"#;
+//
+//     HttpResponse::Ok()
+//         .content_type("text/html; charset=utf-8")
+//         .body(html)
+// }
 
 pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec<NewFile>), Error> {
     let mut data = Bytes::new();
@@ -111,8 +111,11 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
                         file_path.to_string_lossy().to_string(),
                         file_extension
                     );
-                    let file_url =
-                        format!("{}.{}", file_url("http://localhost:8000", file_id), file_extension);
+                    let file_url = format!(
+                        "{}.{}",
+                        file_url("http://localhost:8000", file_id),
+                        file_extension
+                    );
                     let new_file = NewFile {
                         id: file_id,
                         name: file_stem.to_string(),
@@ -140,21 +143,42 @@ pub async fn split_payload(payload: &mut Multipart) -> Result<(bytes::Bytes, Vec
     Ok((data, files))
 }
 
-pub async fn list_issue(
+pub async fn list_issue_by_floor_id(
     pool: web::Data<PgPool>,
     parameters: web::Path<Parameters>,
 ) -> Result<HttpResponse, HttpResponse> {
     let floor_plan_id = Uuid::parse_str(parameters.floor_plan_id.as_ref())
         .map_err(|_| HttpResponse::InternalServerError().finish())?;
 
-    let issues = find_issues(&pool, floor_plan_id)
+    let issues = find_issues_by_floor_plan_id(&pool, floor_plan_id)
         .await
         .map_err(|_| HttpResponse::InternalServerError().finish())?;
 
     Ok(HttpResponse::Ok().json(issues))
 }
 
-pub async fn find_issues(pool: &PgPool, floor_plan_id: Uuid) -> Result<Vec<Issue>, sqlx::Error> {
+pub async fn list_issue(pool: web::Data<PgPool>) -> Result<HttpResponse, HttpResponse> {
+    let issues = find_issues(&pool)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+    Ok(HttpResponse::Ok().json(issues))
+}
+
+async fn find_issues(pool: &PgPool) -> Result<Vec<Issue>, sqlx::Error> {
+    let issues = sqlx::query_as::<_, Issue>("SELECT * FROM issues")
+        .fetch_all(pool)
+        .await
+        .map_err(|e| {
+            log::error!("Failed to query {:?}", e);
+            e
+        })?;
+    Ok(issues)
+}
+
+pub async fn find_issues_by_floor_plan_id(
+    pool: &PgPool,
+    floor_plan_id: Uuid,
+) -> Result<Vec<Issue>, sqlx::Error> {
     let issues = sqlx::query_as::<_, Issue>("SELECT * FROM issues WHERE floor_plan_id = $1")
         .bind(floor_plan_id)
         .fetch_all(pool)

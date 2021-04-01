@@ -1,7 +1,7 @@
 use crate::routes::{
     create_floor_plan, create_issue, create_overall_report, create_project, get_floor_plan_details,
-    get_project_details, health_check, index, list_floor_plans, list_issue, list_projects,
-    rename_project,
+    get_project_details, health_check, list_floor_plans, list_issue, list_issue_by_floor_id,
+    list_projects, rename_project,
 };
 use actix_cors::Cors;
 use actix_files::Files;
@@ -21,7 +21,7 @@ pub fn run(listener: TcpListener, db_pool: PgPool, tera: Tera) -> Result<Server,
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
-            .route("/", web::get().to(index))
+            // .route("/", web::get().to(index))
             .route("/health_check", web::get().to(health_check))
             .service(
                 web::scope("/api/v1")
@@ -61,9 +61,13 @@ pub fn run(listener: TcpListener, db_pool: PgPool, tera: Tera) -> Result<Server,
                                 .service(
                                     web::resource("/issues")
                                         .route(web::post().to(create_issue))
-                                        .route(web::get().to(list_issue)),
+                                        .route(web::get().to(list_issue_by_floor_id)),
                                 ),
                         ),
+                    )
+                    .service(
+                        // endpoint for dropdown input for all use can select old issues list.
+                        web::resource("/issues").route(web::get().to(list_issue)),
                     ),
             )
             .service(Files::new("/static", "./static").show_files_listing())

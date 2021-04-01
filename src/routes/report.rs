@@ -80,11 +80,6 @@ pub async fn create_overall_report(
 
     log::info!("Report context: {:?}", context);
 
-    // let context = Context::from_serialize(new_report).map_err(|e| {
-    //     log::error!("Err when serialize report: {}", e);
-    //     HttpResponse::InternalServerError().finish()
-    // })?;
-
     let html = tmpl.render("index.html", &context).map_err(|e| {
         log::error!("Getting error: {} from tera", e);
         HttpResponse::InternalServerError().finish()
@@ -101,28 +96,14 @@ pub async fn create_overall_report(
         .title("Overall report");
     let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
     let printed_pdf = output
-        .save("static/basic.pdf")
+        .save("static/report.pdf")
         .expect("Failed to save basic.pdf");
     log::info!(
-        "Reading all basic.pdf {:?} to  static/overall_report.pdf",
+        "Reading all report.pdf {:?} to  static/overall_report.pdf",
         printed_pdf
     );
 
-    // let mut resp = NamedFile::from_file(result, "../../static/overall_report.pdf")
-    //     .map_err(|_| HttpResponse::InternalServerError().finish())?;
-    // // let mut buffer = Vec::new();
-    // // result.read_to_end(&mut buffer);
-    // let cd: ContentDisposition = ContentDisposition {
-    //     disposition: DispositionType::Attachment,
-    //     parameters: vec![DispositionParam::Filename(String::from(
-    //         "overall_report.pdf",
-    //     ))],
-    // };
-
-    // let mut buffer = vec![];
-    // printed_pdf.read_to_end(&mut buffer).unwrap();
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
-    // Ok(HttpResponse::Ok().body(resp.set_content_disposition(cd).into_response(&req).into_body()))
 }
 
 pub async fn find_project_report_view(
@@ -140,66 +121,3 @@ pub async fn find_project_report_view(
         })?;
     Ok(project_report_view)
 }
-
-// async fn create_report_by_floor_plan_id() -> impl Responder {
-//     let html = r#"
-//     "<!DOCTYPE html>
-//     <html lang="en">
-//     <meta charset="UTF-8"><body><div class=""><h1>สวัสดั</h1><img src="https://www.rust-lang.org/logos/rust-logo-512x512.png"><h1>This is a Heading</h1><p>This is a paragraph.</p></div></body></html>"
-//    "#;
-//
-//     let mut pdf_app = PdfApplication::new().expect("Failed to init PDF application");
-//
-//     let mut builder = pdf_app.builder();
-//     builder
-//         .orientation(Orientation::Landscape)
-//         .margin(Size::Millimeters(12))
-//         .title("Rust website");
-//     let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
-//     let _ = output
-//         .save("static/basic.pdf")
-//         .expect("Failed to save basic.pdf");
-//     HttpResponse::Ok().finish()
-// }
-//
-// async fn preview_report_by_floor_plan_id() -> impl Responder {
-//     let html = r#"
-//     "<!DOCTYPE html>
-//     <html lang="en">
-//     <meta charset="UTF-8"><body><div class=""><h1>สวัสดั</h1><img src="https://www.rust-lang.org/logos/rust-logo-512x512.png"><h1>This is a Heading</h1><p>This is a paragraph.</p></div></body></html>"
-//    "#;
-//
-//     let mut pdf_app = PdfApplication::new().expect("Failed to init PDF application");
-//
-//     let mut builder = pdf_app.builder();
-//     builder
-//         .orientation(Orientation::Landscape)
-//         .margin(Size::Millimeters(12))
-//         .title("Rust website");
-//     let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
-//     let _ = output
-//         .save("static/basic.pdf")
-//         .expect("Failed to save basic.pdf");
-//     HttpResponse::Ok().finish()
-// }
-//
-// async fn preview_report_by_project_id() -> impl Responder {
-//     let html = r#"
-//     "<!DOCTYPE html>
-//     <html lang="en">
-//     <meta charset="UTF-8"><body><div class=""><h1>สวัสดั</h1><img src="https://www.rust-lang.org/logos/rust-logo-512x512.png"><h1>This is a Heading</h1><p>This is a paragraph.</p></div></body></html>"
-//    "#;
-//
-//     let mut pdf_app = PdfApplication::new().expect("Failed to init PDF application");
-//
-//     let mut builder = pdf_app.builder();
-//     builder
-//         .orientation(Orientation::Landscape)
-//         .margin(Size::Millimeters(12))
-//         .title("Rust website");
-//     let mut output = builder.build_from_html(&html).expect("Failed to build pdf");
-//     let _ = output
-//         .save("static/basic.pdf")
-//         .expect("Failed to save basic.pdf");
-//     HttpResponse::Ok().finish()
-// }
