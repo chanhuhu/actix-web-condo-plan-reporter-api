@@ -244,6 +244,35 @@ pub async fn create_issue(
     Ok(HttpResponse::Ok().finish())
 }
 
+pub async fn hard_delete_issue(
+    pool: web::Data<PgPool>,
+    issue_id: web::Path<String>,
+) -> Result<HttpResponse, HttpResponse> {
+    let issue_id = Uuid::parse_str(issue_id.as_ref()).expect("Failed to parse Uuid");
+
+    delete_issue(&pool, issue_id)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+async fn delete_issue(pool: &PgPool, issue_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+    DELETE FROM issues
+    WHERE id = $1
+    "#,
+        issue_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Execute query error: {:?}", e);
+        e
+    })?;
+    Ok(())
+}
+
 async fn insert_file(
     transaction: &mut Transaction<'_, Postgres>,
     new_file: &NewFile,

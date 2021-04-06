@@ -92,7 +92,10 @@ pub async fn rename_project(
 ) -> Result<HttpResponse, HttpResponse> {
     let new_project = parse_project(input.0).map_err(|_| HttpResponse::BadRequest().finish())?;
     let project_id = Uuid::parse_str(parameters.project_id.as_ref()).expect("Failed to parse Uuid");
-    update_project(&pool, &new_project, project_id)
+    let project = find_project(&pool, project_id)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+    update_project(&pool, &new_project, project.id)
         .await
         .map_err(|_| HttpResponse::InternalServerError().finish())?;
     Ok(HttpResponse::Ok().finish())

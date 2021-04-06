@@ -20,6 +20,10 @@ pub struct NewFloorPlan {
     pub name: String,
     pub image_url: String,
 }
+#[derive(serde::Deserialize)]
+pub struct FloorPlainInput {
+    pub name: String,
+}
 
 #[derive(sqlx::FromRow, Debug, Clone, serde::Serialize)]
 pub struct FloorPlan {
@@ -114,6 +118,83 @@ pub async fn create_floor_plan(
         }
     }
     Ok(HttpResponse::Ok().into())
+}
+
+pub async fn rename_floor_plan(
+    pool: web::Data<PgPool>,
+    input: web::Json<FloorPlainInput>,
+    floor_plan_id: web::Path<String>,
+) -> Result<HttpResponse, HttpResponse> {
+    let floor_plan_id = Uuid::parse_str(floor_plan_id.as_ref()).expect("Failed to parse uuid");
+    update_floor_plan(&pool, &input, floor_plan_id)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn update_floor_plan(
+    pool: &PgPool,
+    input: &FloorPlainInput,
+    floor_plan_id: Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"UPDATE floor_plans SET
+    name = $1, updated_at = $2
+    WHERE id = $3"#,
+        input.name,
+        Utc::now(),
+        floor_plan_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Failed to query {:?}", e);
+        e
+    })?;
+    Ok(())
+}
+
+pub async fn hard_delete_floor_plan(
+    pool: web::Data<PgPool>,
+    floor_plan_id: web::Path<String>,
+) -> Result<HttpResponse, HttpResponse> {
+    let floor_plan_id = Uuid::parse_str(&floor_plan_id)
+        .map_err(|e| log::error!("Parse floor_plan_id from: {}, error: {}", floor_plan_id, e))
+        .expect("Failed to parse uuid");
+
+    let floor_plan = find_floor_plan(&pool, floor_plan_id)
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())?;
+
+    match floor_plan {
+        None => Err(HttpResponse::NotFound().finish()),
+        Some(fp) => {
+            let deleted_floor_plan = delete_floor_plan(&pool, fp)
+                .await
+                .map_err(|_| HttpResponse::InternalServerError().finish())?;
+            Ok(HttpResponse::Ok().json(deleted_floor_plan))
+        }
+    }
+}
+
+pub async fn delete_floor_plan(
+    pool: &PgPool,
+    floor_plan: FloorPlan,
+) -> Result<FloorPlan, sqlx::Error> {
+    sqlx::query!(
+        r#"
+    DELETE FROM floor_plans
+    WHERE id = $1
+    "#,
+        floor_plan.id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        log::error!("Execute query error: {:?}", e);
+        e
+    })?;
+    Ok(floor_plan)
 }
 
 pub async fn list_floor_plans(

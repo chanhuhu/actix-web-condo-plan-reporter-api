@@ -1,7 +1,7 @@
 use crate::routes::{
     create_floor_plan, create_issue, create_overall_report, create_project, get_floor_plan_details,
-    get_project_details, health_check, list_floor_plans, list_issue, list_issue_by_floor_id,
-    list_projects, rename_project,
+    get_project_details, hard_delete_floor_plan, hard_delete_issue, health_check, list_floor_plans,
+    list_issue, list_issue_by_floor_id, list_projects, rename_floor_plan, rename_project,
 };
 use actix_cors::Cors;
 use actix_files::Files;
@@ -56,7 +56,10 @@ pub fn run(listener: TcpListener, db_pool: PgPool, tera: Tera) -> Result<Server,
                         web::scope("/floor_plans").service(
                             web::scope("/{floor_plan_id}")
                                 .service(
-                                    web::resource("").route(web::get().to(get_floor_plan_details)),
+                                    web::resource("")
+                                        .route(web::get().to(get_floor_plan_details))
+                                        .route(web::put().to(rename_floor_plan))
+                                        .route(web::delete().to(hard_delete_floor_plan)),
                                 )
                                 .service(
                                     web::resource("/issues")
@@ -67,7 +70,11 @@ pub fn run(listener: TcpListener, db_pool: PgPool, tera: Tera) -> Result<Server,
                     )
                     .service(
                         // endpoint for dropdown input for all use can select old issues list.
-                        web::resource("/issues").route(web::get().to(list_issue)),
+                        web::scope("/issues")
+                            .service(web::resource("").route(web::get().to(list_issue)))
+                            .service(web::scope("/{issue_id}").service(
+                                web::resource("").route(web::delete().to(hard_delete_issue)),
+                            )),
                     ),
             )
             .service(Files::new("/static", "./static").show_files_listing())

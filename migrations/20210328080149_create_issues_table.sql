@@ -3,7 +3,7 @@ CREATE TABLE issues
 (
     id            uuid        NOT NULL,
     PRIMARY KEY (id),
-    floor_plan_id uuid        NOT NULL REFERENCES floor_plans (id),
+    floor_plan_id uuid        NOT NULL REFERENCES floor_plans (id) ON DELETE CASCADE,
     name          TEXT        NOT NULL,
     description   TEXT        NOT NULL,
     location      TEXT        NOT NULL,

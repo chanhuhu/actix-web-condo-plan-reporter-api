@@ -3,7 +3,7 @@ CREATE TABLE floor_plans
 (
     id         uuid        NOT NULL,
     PRIMARY KEY (id),
-    project_id uuid        NOT NULL REFERENCES projects (id),
+    project_id uuid        NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
     name       TEXT        NOT NULL,
     image_url  TEXT        NOT NULL,
     created_at timestamptz NOT NULL,
